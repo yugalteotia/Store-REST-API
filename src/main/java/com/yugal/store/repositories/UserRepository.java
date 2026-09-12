@@ -1,6 +1,6 @@
-package com.codewithmosh.store.repositories;
+package com.yugal.store.repositories;
 
-import com.codewithmosh.store.entities.User;
+import com.yugal.store.entities.User;
 import org.springframework.data.repository.CrudRepository;
 
 public interface UserRepository extends CrudRepository<User, Long> {

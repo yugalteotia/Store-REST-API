@@ -5,10 +5,10 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.1</version>
+        <version>4.1.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.codewithmosh</groupId>
+    <groupId>com.yugal</groupId>
     <artifactId>store</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>store</name>
@@ -27,7 +27,7 @@
         <url/>
     </scm>
     <properties>
-        <java.version>23</java.version>
+        <java.version>26</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -54,16 +54,16 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <artifactId>flyway-core</artifactId>
-            <groupId>org.flywaydb</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+            <groupId>org.springframework.boot</groupId>
         </dependency>
         <dependency>
             <artifactId>flyway-mysql</artifactId>
             <groupId>org.flywaydb</groupId>
         </dependency>
         <dependency>
-            <artifactId>lombok</artifactId>
             <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
             <scope>annotationProcessor</scope>
         </dependency>
 
