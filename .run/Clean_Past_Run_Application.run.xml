@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Clean_Past_Run_Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="store" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.yugal.store.StoreApplication" />
+    <method v="2">
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/pom.xml" goal="clean" />
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
