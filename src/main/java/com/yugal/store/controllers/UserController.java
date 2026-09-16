@@ -6,6 +6,7 @@ import com.yugal.store.dtos.UpdateUserRequest;
 import com.yugal.store.dtos.UserDto;
 import com.yugal.store.mappers.UserMapper;
 import com.yugal.store.repositories.UserRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Map;
 import java.util.Set;
 
 import static java.util.Objects.nonNull;
@@ -46,7 +48,8 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody RegisterUserRequest request, UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterUserRequest request, UriComponentsBuilder uriBuilder) {
+        if(userRepository.existsByEmail(request.getEmail())) return ResponseEntity.badRequest().body(Map.of("email", "Email is already registered"));
         var user = userRepository.save(userMapper.toEntity(request));
         return ResponseEntity.created(uriBuilder.path("/users/{id}").buildAndExpand(user.getId()).toUri()).body(userMapper.toDto(user));
     }
