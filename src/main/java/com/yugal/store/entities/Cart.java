@@ -28,6 +28,7 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.MERGE, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<CartItem> cartItems = new LinkedHashSet<>();
 
+    @SuppressWarnings("unused")
     public BigDecimal getCartsTotalPrice() {
         return cartItems.stream().map(CartItem::getTotalPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
