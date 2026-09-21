@@ -7,6 +7,9 @@ import com.yugal.store.dtos.UpdateItemRequestDto;
 import com.yugal.store.exceptions.CartNotFoundException;
 import com.yugal.store.exceptions.ProductNotFoundException;
 import com.yugal.store.services.CartService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +23,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/carts")
+@Tag(name = "Carts", description = "The Cart API")
 public class CartController {
 
     private CartService cartService;
@@ -31,28 +35,35 @@ public class CartController {
     }
 
     @PostMapping("/{cartId}/items")
-    public ResponseEntity<CartItemDto> addItemToCart(@PathVariable UUID cartId, @RequestBody AddItemRequestDto request, UriComponentsBuilder uriBuilder) {
+    @Operation(summary = "Add a product to the cart")
+    public ResponseEntity<CartItemDto> addToCart(
+            @Parameter(description = "The ID of the cart.") @PathVariable UUID cartId,
+            @RequestBody AddItemRequestDto request, UriComponentsBuilder uriBuilder) {
         var cartItemDto = cartService.addItemToCart(cartId, request.getProductId());
         return ResponseEntity.created(uriBuilder.path("/{cartId}/items").buildAndExpand(cartId).toUri()).body(cartItemDto);
     }
 
     @GetMapping("/{cartId}")
-    public CartDto getCart(@PathVariable UUID cartId) {
+    @Operation(summary = "Get the details of a cart")
+    public CartDto getCart(@Parameter(description = "The ID of the cart.") @PathVariable UUID cartId) {
         return cartService.getCart(cartId);
     }
 
     @PutMapping("/{cartId}/items/{productId}")
+    @Operation(summary = "Update the quantity of a product in the cart")
     public CartItemDto updateCartItem(@PathVariable("cartId") UUID cartId, @PathVariable("productId") Long productId, @Valid @RequestBody UpdateItemRequestDto request) {
         return cartService.updateCartItem(cartId, productId, request.getQuantity());
     }
 
     @DeleteMapping("/{cartId}/items/{productId}")
+    @Operation(summary = "Remove a product from the cart")
     public ResponseEntity<?> deleteCartItem(@PathVariable("cartId") UUID cartId, @PathVariable("productId") Long productId) {
         cartService.deleteCartItem(cartId, productId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "CartItem deleted successfully."));
     }
 
     @DeleteMapping("/{cartId}/items")
+    @Operation(summary = "Clear all products from the cart")
     public ResponseEntity<?> clearCart(@PathVariable("cartId") UUID cartId) {
         cartService.clearCart(cartId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "Cart cleared successfully."));
