@@ -121,6 +121,15 @@ cd Store-REST-API
 
 ### Start the application
 
+Create a local JWT signing key before starting the app:
+
+```bash
+printf 'JWT_SECRET=%s\n' "$(openssl rand -base64 32)" > .env
+```
+
+The app reads `.env` from the project directory. You can also set `JWT_SECRET`
+as an environment variable. Keep the key private and at least 32 bytes long.
+
 ```bash
 ./mvnw spring-boot:run
 ```

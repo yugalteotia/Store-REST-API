@@ -4,6 +4,7 @@ import com.yugal.store.dtos.ChangePasswordRequest;
 import com.yugal.store.dtos.RegisterUserRequest;
 import com.yugal.store.dtos.UpdateUserRequest;
 import com.yugal.store.dtos.UserDto;
+import com.yugal.store.entities.Role;
 import com.yugal.store.mappers.UserMapper;
 import com.yugal.store.repositories.UserRepository;
 import jakarta.validation.Valid;
@@ -11,6 +12,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -25,6 +27,7 @@ import static java.util.Objects.nonNull;
 public class UserController {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     //    @RequestMapping(method = RequestMethod.GET, value = "/users")
     //    @GetMapping("/users")
@@ -49,9 +52,13 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterUserRequest request, UriComponentsBuilder uriBuilder) {
-        if(userRepository.existsByEmail(request.getEmail())) return ResponseEntity.badRequest().body(Map.of("email", "Email is already registered"));
-        var user = userRepository.save(userMapper.toEntity(request));
-        return ResponseEntity.created(uriBuilder.path("/users/{id}").buildAndExpand(user.getId()).toUri()).body(userMapper.toDto(user));
+        if (userRepository.existsByEmail(request.getEmail()))
+            return ResponseEntity.badRequest().body(Map.of("email", "Email is already registered"));
+        var user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.USER);
+        var savedUser = userRepository.save(user);
+        return ResponseEntity.created(uriBuilder.path("/users/{id}").buildAndExpand(savedUser.getId()).toUri()).body(userMapper.toDto(savedUser));
     }
 
     @PutMapping("/{id}")
@@ -76,10 +83,10 @@ public class UserController {
         if (!nonNull(user)) {
             return ResponseEntity.notFound().build();
         }
-        if (!request.getOldPassword().equals(user.getPassword())) {
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        user.setPassword(request.getNewPassword());
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         return ResponseEntity.noContent().build();
     }
