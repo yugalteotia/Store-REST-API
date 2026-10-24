@@ -1,26 +1,19 @@
 package com.yugal.store.users;
 
+import com.yugal.store.dtos.ErrorDto;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.Map;
-import java.util.Set;
-
-import static java.util.Objects.nonNull;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/users")
 public class UserController {
-    private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     //    @RequestMapping(method = RequestMethod.GET, value = "/users")
     //    @GetMapping("/users")
@@ -30,57 +23,40 @@ public class UserController {
             @RequestParam(required = false, defaultValue = "", name = "sort") String sortBy) {
 //        sort = nonNull(sort) && Set.of("name", "email").contains(sort) ? sort : "name";
 //        System.out.println("authToken: " + authToken);
-        sortBy = Set.of("name", "email").contains(sortBy) ? sortBy : "name";
-        return userRepository.findAll(Sort.by(sortBy)).stream().map(userMapper::toDto).toList();
+        return userService.getAllUsers(sortBy);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
-        var user = userRepository.findById(id).orElse(null);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
+        var user = userService.getUserById(id);
         return ResponseEntity.ok(userMapper.toDto(user));
     }
 
     @PostMapping
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterUserRequest request, UriComponentsBuilder uriBuilder) {
-        if (userRepository.existsByEmail(request.getEmail()))
-            return ResponseEntity.badRequest().body(Map.of("email", "Email is already registered"));
-        var user = userMapper.toEntity(request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.USER);
-        var savedUser = userRepository.save(user);
-        return ResponseEntity.created(uriBuilder.path("/users/{id}").buildAndExpand(savedUser.getId()).toUri()).body(userMapper.toDto(savedUser));
+        var newlyCreatedUser = userService.createUser(request);
+        return ResponseEntity.created(uriBuilder.path("/users/{id}").buildAndExpand(newlyCreatedUser.getId()).toUri()).body(userMapper.toDto(newlyCreatedUser));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateUser(@PathVariable(name = "id") Long id, @RequestBody UpdateUserRequest request) {
-        var user = userRepository.findById(id).orElse(null);
-        return nonNull(user) ? ResponseEntity.ok(userMapper.toDto(userRepository.save(userMapper.update(request, user)))) : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(userMapper.toDto(userService.updateExistingUser(id, request)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable(name = "id") Long id) {
-        var user = userRepository.findById(id).orElse(null);
-        if (nonNull(user)) {
-            userRepository.delete(user);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/change-password")
     public ResponseEntity<Void> updatePassword(@PathVariable(name = "id") Long id, @RequestBody ChangePasswordRequest request) {
-        var user = userRepository.findById(id).orElse(null);
-        if (!nonNull(user)) {
-            return ResponseEntity.notFound().build();
-        }
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
+        userService.updatePassword(id, request);
         return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorDto> handleUserNotFoundException(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto(ex.getMessage()));
     }
 }
