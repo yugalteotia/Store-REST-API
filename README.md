@@ -1,108 +1,127 @@
 # Store REST API
 
-A personal learning project built with Spring Boot to explore REST API development, database persistence, validation, and backend architecture for an online store.
+A Spring Boot backend for an e-commerce platform built to manage users, products, carts, orders, payments, and authentication in a modular and production-oriented architecture.
 
-This project is not a production-ready e-commerce system, but it is a practical implementation of core concepts I wanted to practice while learning: entity modeling, repositories, DTOs, controllers, validation, database migration, and API documentation.
+## Overview
+
+Store REST API is a full-featured backend service for an online store. It supports the core operations needed to run a modern commerce workflow, including:
+
+- User registration, authentication, and profile management
+- Product catalog management and category-based filtering
+- Shopping cart creation and item management
+- Order creation and retrieval
+- Stripe-based payment checkout
+- MySQL persistence with Flyway migrations
+- Swagger/OpenAPI documentation
+- Security using JWT and Spring Security
+
+This project is designed as a practical backend implementation for learning and building real-world Spring Boot APIs.
 
 ## Features
 
-- User management with create, read, update, and delete operations
-- Product catalog with category-based filtering
-- Cart creation and cart item management
-- Quantity updates and cart clearing
-- Validation for request payloads
-- MySQL database integration with Flyway migrations
-- Swagger/OpenAPI documentation
-- Simple Thymeleaf home page for a basic UI entry point
+- User registration and login
+- JWT-based authentication and authorization
+- Password change support
+- Product CRUD operations
+- Category-based product search and filtering
+- Cart creation, update, and removal flows
+- Order processing and order status tracking
+- Stripe checkout integration
+- Flyway-based database migrations
+- REST API documentation with Swagger UI
+- Thymeleaf-based simple UI entry page
 
 ## Tech Stack
 
 - Java 26
-- Spring Boot 4
+- Spring Boot 4.1.1
 - Spring Web
 - Spring Data JPA
+- Spring Security
+- JWT (jjwt)
 - MySQL
 - Flyway
 - Lombok
 - MapStruct
 - Spring Validation
+- Stripe Java SDK
 - Springdoc OpenAPI
 - Maven
 
 ## Project Structure
 
 ```text
-store-rest-api/
+Store-REST-API/
+├── .mvn/
+├── .run/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/yugal/store/
-│   │   │   ├── controllers/
-│   │   │   ├── dtos/
-│   │   │   ├── entities/
-│   │   │   ├── exceptions/
-│   │   │   ├── mappers/
-│   │   │   ├── repositories/
-│   │   │   ├── services/
-│   │   │   ├── validation/
+│   │   │   ├── admin/
+│   │   │   ├── auth/
+│   │   │   ├── carts/
+│   │   │   ├── commons/
+│   │   │   ├── orders/
+│   │   │   ├── payments/
+│   │   │   ├── products/
+│   │   │   ├── users/
 │   │   │   └── StoreApplication.java
 │   │   └── resources/
 │   │       ├── db/migration/
 │   │       ├── templates/
 │   │       └── application.yaml
 │   └── test/
-├── .mvn/
+├── .env.example
+├── .gitignore
+├── README.md
+├── pom.xml
 ├── mvnw
 ├── mvnw.cmd
-├── pom.xml
 ├── script.sql
-├── README.md
-└── .gitignore
+├── .gitattributes
+└── LICENSE (if added later)
 ```
 
-## API Overview
+## Authentication
 
-### Users
+The application uses JWT-based authentication for protected endpoints.
 
-- `GET /users` — get all users
-- `GET /users/{id}` — get a user by ID
-- `POST /users` — register a user
-- `PUT /users/{id}` — update user details
-- `DELETE /users/{id}` — delete a user
-- `POST /users/{id}/change-password` — change a user's password
+Create a `.env` file from `.env.example`:
 
-### Products
+```dotenv
+JWT_SECRET=your_secure_secret
+STRIPE_SECRET_KEY=your_stripe_secret
+STRIPE_WEBHOOK_SECRET_KEY=your_webhook_secret
+```
 
-- `GET /products` — get all products
-- `GET /products?categoryId={id}` — get products by category
-- `GET /products/{id}` — get a product by ID
-- `POST /products` — create a product
-- `PUT /products/{id}` — update a product
-- `DELETE /products/{id}` — delete a product
+## Database Configuration
 
-### Carts
+The project uses MySQL with Flyway for schema management.
 
-- `POST /carts` — create a cart
-- `GET /carts/{cartId}` — get cart details
-- `POST /carts/{cartId}/items` — add a product to cart
-- `PUT /carts/{cartId}/items/{productId}` — update item quantity
-- `DELETE /carts/{cartId}/items/{productId}` — remove an item
-- `DELETE /carts/{cartId}/items` — clear the cart
-
-## Database
-
-The application uses MySQL and Flyway for schema management.
-
-Default configuration is defined in `src/main/resources/application.yaml`:
+Example configuration from `src/main/resources/application.yaml`:
 
 ```yaml
 spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: store
   datasource:
     url: jdbc:mysql://localhost:3306/store_api?createDatabaseIfNotExist=true
     username: yugal
     password: 4102000
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+  jwt:
+    secret: ${JWT_SECRET}
+    accessTokenExpiration: 900
+    refreshTokenExpiration: 604800
+  stripe:
+    secretKey: ${STRIPE_SECRET_KEY}
+    webhookSecretKey: ${STRIPE_WEBHOOK_SECRET_KEY}
+websiteUrl: http://localhost:4242
 ```
-
-Make sure MySQL is running locally and the database is available before starting the app.
 
 ## Running the Project
 
@@ -110,9 +129,9 @@ Make sure MySQL is running locally and the database is available before starting
 
 - Java 26
 - Maven
-- MySQL server running locally
+- MySQL running locally
 
-### Clone the project
+### Clone the repository
 
 ```bash
 git clone https://github.com/yugalteotia/Store-REST-API.git
@@ -121,20 +140,11 @@ cd Store-REST-API
 
 ### Start the application
 
-Create a local JWT signing key before starting the app:
-
-```bash
-printf 'JWT_SECRET=%s\n' "$(openssl rand -base64 32)" > .env
-```
-
-The app reads `.env` from the project directory. You can also set `JWT_SECRET`
-as an environment variable. Keep the key private and at least 32 bytes long.
-
 ```bash
 ./mvnw spring-boot:run
 ```
 
-The app will start on:
+The app runs at:
 
 ```text
 http://localhost:8080
@@ -142,32 +152,99 @@ http://localhost:8080
 
 ### Swagger UI
 
-After the application starts, you can inspect the API docs here:
+API documentation is available at:
 
 ```text
 http://localhost:8080/swagger-ui/index.html
 ```
 
-## Database Migrations
+## Main Modules
 
-Flyway migration files are stored in:
+### Users
+- Register users
+- Fetch users
+- Update profile details
+- Change password
+- Role-based access handling
 
-```text
-src/main/resources/db/migration/
-```
+### Products
+- Create and update products
+- Fetch all products or category-filtered products
+- View a single product
+- Delete products
 
-This helps keep the database schema versioned and consistent.
+### Carts
+- Create a cart
+- Add product items
+- Update item quantity
+- Remove individual items
+- Clear the cart
+
+### Orders
+- Create orders from cart data
+- Retrieve order details
+- Track payment status
+
+### Payments
+- Stripe checkout session creation
+- Webhook request handling
+- Payment result processing
+
+## API Overview
+
+### Auth
+- `POST /auth/login`
+- `POST /auth/register`
+
+### Users
+- `GET /users`
+- `GET /users/{id}`
+- `POST /users`
+- `PUT /users/{id}`
+- `DELETE /users/{id}`
+- `POST /users/{id}/change-password`
+
+### Products
+- `GET /products`
+- `GET /products?categoryId={id}`
+- `GET /products/{id}`
+- `POST /products`
+- `PUT /products/{id}`
+- `DELETE /products/{id}`
+
+### Carts
+- `POST /carts`
+- `GET /carts/{cartId}`
+- `POST /carts/{cartId}/items`
+- `PUT /carts/{cartId}/items/{productId}`
+- `DELETE /carts/{cartId}/items/{productId}`
+- `DELETE /carts/{cartId}/items`
+
+### Orders
+- `GET /orders`
+- `GET /orders/{id}`
+- `POST /orders`
+
+### Payments
+- `POST /checkout`
+- `POST /webhook`
 
 ## Notes
 
-This project was built as a hands-on learning exercise to understand how a real Spring Boot API is structured and how different components fit together. It includes practical features like DTO mapping, data validation, MySQL persistence, and RESTful endpoints.
+This project is built as a hands-on backend development exercise and demonstrates real-world patterns such as:
 
-There are still areas that could be improved for production use, such as authentication, role-based access control, more robust error handling, and better separation of business logic.
+- Layered architecture
+- DTO-based REST design
+- JPA persistence with relational data models
+- Validation and exception handling
+- JWT security
+- Payment integration
+- API documentation
 
 ## License
 
-This project is for learning and personal development purposes.
+This project is intended for learning, personal development, and backend experimentation.
 
 ## Contact
 
-If you want to connect or discuss improvements, feel free to reach out through GitHub.
+If you want to contribute or discuss improvements, feel free to reach out through the GitHub repository.
