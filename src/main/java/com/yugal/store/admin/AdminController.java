@@ -1,4 +1,4 @@
-package com.yugal.store.controllers;
+package com.yugal.store.admin;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

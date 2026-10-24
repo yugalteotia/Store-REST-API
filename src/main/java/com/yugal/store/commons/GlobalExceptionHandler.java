@@ -1,6 +1,5 @@
-package com.yugal.store.controllers;
+package com.yugal.store.commons;
 
-import com.yugal.store.dtos.ErrorDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;

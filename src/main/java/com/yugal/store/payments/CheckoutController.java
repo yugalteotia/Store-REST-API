@@ -1,6 +1,6 @@
 package com.yugal.store.payments;
 
-import com.yugal.store.dtos.ErrorDto;
+import com.yugal.store.commons.ErrorDto;
 import com.yugal.store.carts.CartEmptyException;
 import com.yugal.store.carts.CartNotFoundException;
 import jakarta.validation.Valid;

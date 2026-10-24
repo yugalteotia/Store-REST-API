@@ -1,4 +1,4 @@
-package com.yugal.store.controllers;
+package com.yugal.store.commons;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

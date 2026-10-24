@@ -1,4 +1,4 @@
-package com.yugal.store.dtos;
+package com.yugal.store.commons;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

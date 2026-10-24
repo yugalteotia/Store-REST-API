@@ -1,6 +1,6 @@
 package com.yugal.store.orders;
 
-import com.yugal.store.dtos.ErrorDto;
+import com.yugal.store.commons.ErrorDto;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

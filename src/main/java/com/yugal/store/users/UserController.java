@@ -1,6 +1,6 @@
 package com.yugal.store.users;
 
-import com.yugal.store.dtos.ErrorDto;
+import com.yugal.store.commons.ErrorDto;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

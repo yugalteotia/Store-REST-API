@@ -1,4 +1,4 @@
-package com.yugal.store.filters;
+package com.yugal.store.commons;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
