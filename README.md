@@ -1,6 +1,6 @@
 # Store REST API
 
-A Spring Boot backend for an e-commerce platform built to manage users, products, carts, orders, payments, and authentication in a modular and production-oriented architecture.
+A production-style Spring Boot backend for an online store, built to manage catalog, cart, checkout, authentication, and order flow with modern Java tooling.
 
 ## Overview
 
