@@ -27,6 +27,10 @@ public class StripePaymentGateway implements PaymentGateway {
         try {
             var builder = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
+                    // Managed Payments supports digital products only. This store sells physical goods.
+                    .setManagedPayments(SessionCreateParams.ManagedPayments.builder()
+                            .setEnabled(false)
+                            .build())
                     .setSuccessUrl(websiteUrl + "/checkout-success?orderId=" + order.getId())
                     .setCancelUrl(websiteUrl + "/checkout-cancel?")
                     .setPaymentIntentData(SessionCreateParams.PaymentIntentData.builder()
