@@ -1,7 +1,4 @@
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
-websiteUrl: https://store-api.yugal.prod
-server:
-  port: ${PORT:8080}
-  address: 0.0.0.0
+websiteUrl: https://store-rest-api.hostless.app
