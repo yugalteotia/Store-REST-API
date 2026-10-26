@@ -2,6 +2,15 @@ package com.yugal.store.auth;
 
 import com.yugal.store.users.UserDto;
 import com.yugal.store.users.UserMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -13,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/auth")
+@Tag(name = "Authentication", description = "Login, token refresh, and the current user")
 public class AuthController {
 
     private final UserMapper userMapper;
@@ -20,6 +30,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
+    @Operation(summary = "Log in", description = "Authenticates a user, returns an access token, and sets the refresh-token cookie.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Login successful",
+                    content = @Content(schema = @Schema(implementation = JwtResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid credentials or request")
+    })
+    @SecurityRequirements
     public ResponseEntity<JwtResponse> login(@Valid @RequestBody AuthRequestDto request, HttpServletResponse response) {
         var loginResponse = authService.login(request);
 
@@ -42,12 +59,27 @@ public class AuthController {
 //    }
 
     @PostMapping("/refresh")
+    @Operation(summary = "Refresh the access token", description = "Creates a new access token from the refresh-token cookie.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Token refreshed",
+                    content = @Content(schema = @Schema(implementation = JwtResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid refresh token")
+    })
+    @SecurityRequirements
     public ResponseEntity<JwtResponse> refresh(@CookieValue(value = "refreshToken") String refreshToken) {
         var accessToken = authService.getFreshAccessToken(refreshToken);
         return ResponseEntity.ok(new JwtResponse(accessToken));
     }
 
     @GetMapping("/me")
+    @Operation(summary = "Get the current user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Current user",
+                    content = @Content(schema = @Schema(implementation = UserDto.class))),
+            @ApiResponse(responseCode = "401", description = "Authentication required"),
+            @ApiResponse(responseCode = "404", description = "Current user was not found")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserDto> me() {
         var user = authService.getCurrentUser();
         if (user == null) {
