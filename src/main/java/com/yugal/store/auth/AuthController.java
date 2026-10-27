@@ -3,21 +3,22 @@ package com.yugal.store.auth;
 import com.yugal.store.users.UserDto;
 import com.yugal.store.users.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
+
+import static java.time.Duration.ofSeconds;
 
 @RestController
 @AllArgsConstructor
@@ -40,12 +41,19 @@ public class AuthController {
     public ResponseEntity<JwtResponse> login(@Valid @RequestBody AuthRequestDto request, HttpServletResponse response) {
         var loginResponse = authService.login(request);
 
-        var cookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
-        cookie.setHttpOnly(true);
-        cookie.setPath("/auth/refresh");
-        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration()); // 7 days
-        cookie.setSecure(true);
-        response.addCookie(cookie);
+        // SameSite=None; Secure is required for cross-site hosted use:
+        // frontend is ${FRONTEND_WEBSITE_URL}, for now
+        // backend is https://store-rest-api.hostless.app. Without it, browsers withhold
+        // this cookie on POST /auth/refresh and sessions do not restore
+        // after reload / access-token expiry.
+        var cookie = ResponseCookie.from("refreshToken", loginResponse.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/auth/refresh")
+                .maxAge(ofSeconds(jwtConfig.getRefreshTokenExpiration())) // 7 days
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
 
         return ResponseEntity.ok(new JwtResponse(loginResponse.getAccessToken()));
     }

@@ -4,4 +4,4 @@ spring:
 server:
   port: ${PORT:8080}
   address: 0.0.0.0
-websiteUrl: https://store-rest-api.hostless.app
+websiteUrl: ${FRONTEND_WEBSITE_URL}
