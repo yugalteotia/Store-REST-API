@@ -79,6 +79,25 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(accessToken));
     }
 
+    @PostMapping("/logout")
+    @Operation(summary = "Log out", description = "Clears the refresh-token cookie. No token revocation is done: " +
+            "the short-lived access token simply expires on its own.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Logged out, cookie cleared")
+    })
+    @SecurityRequirements
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        var clearCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/auth/refresh")
+                .maxAge(ofSeconds(0))
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", clearCookie.toString());
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/me")
     @Operation(summary = "Get the current user")
     @ApiResponses({
